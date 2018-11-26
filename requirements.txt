@@ -6,3 +6,4 @@ djangorestframework==3.8.2
 PyJWT==1.4.2
 pytz==2018.7
 six==1.11.0
+coveralls==1.5.1
