@@ -98,3 +98,6 @@ db.sqlite3
 
 # IDE
 .vscode/
+
+# Django Stuff
+migrations/
