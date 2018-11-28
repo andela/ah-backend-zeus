@@ -1,5 +1,6 @@
-Authors Haven - A Social platform for the creative at heart.
-=======
+## Authors Haven - A Social platform for the creative at heart.
+
+[![Build Status](https://travis-ci.org/andela/ah-backend-zeus.svg?branch=ch-integrate-travisci-162163159)](https://travis-ci.org/andela/ah-backend-zeus)
 
 ## Vision
 Create a community of like minded authors to foster inspiration and innovation
