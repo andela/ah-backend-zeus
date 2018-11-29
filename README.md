@@ -1,14 +1,7 @@
-
-## Coverage
-[![Coverage Status](https://coveralls.io/repos/github/andela/ah-backend-zeus/badge.svg?branch=develop)](https://coveralls.io/github/andela/ah-backend-zeus?branch=develop)
-
-
-Authors Haven - A Social platform for the creative at heart.
-
-
 ## Authors Haven - A Social platform for the creative at heart.
 
 [![Build Status](https://travis-ci.org/andela/ah-backend-zeus.svg?branch=ch-integrate-travisci-162163159)](https://travis-ci.org/andela/ah-backend-zeus)
+[![Coverage Status](https://coveralls.io/repos/github/andela/ah-backend-zeus/badge.svg?branch=develop)](https://coveralls.io/github/andela/ah-backend-zeus?branch=develop)
 
 
 ## Vision
