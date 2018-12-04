@@ -15,11 +15,14 @@ from authors.apps.authentication.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.generics import GenericAPIView
+from rest_framework.reverse import reverse
 
 from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer, PasswordSerializer
 )
+from .models import User
+from django.http import JsonResponse
 
 
 
@@ -193,3 +196,18 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UsersRetrieveAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+
+    def get(self, request):
+        users = User.objects.all()
+        serializer = self.serializer_class(users, many=True)
+        response = {'authors': serializer.data}
+        for author, obj in zip(response['authors'], User.objects.all()):
+            author['profile'] = reverse('profile', args=[obj.id], request=request)
+            del author['token']
+        return JsonResponse(response, status=200, safe=False)
+

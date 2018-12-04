@@ -24,6 +24,6 @@ class TestUserProfile(APITestCase):
         for u in usr:
             self.reg_user = u['user']
 
-        response = self.client.put('/api/users/profiles/{}'.format(self.reg_user), update_data, format ='json')
+        response = self.client.put('/api/users/profiles/{}'.format(self.reg_user) + '/', update_data, format ='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
