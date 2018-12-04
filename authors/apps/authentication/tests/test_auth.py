@@ -15,7 +15,7 @@ class AuthTestCase(APITestCase):
             "user": {
                 "username": "eric",
                 "email": "eric@gmail.com",
-                "password": "incorrect"
+                "password": "Get/2015"
             }
         }                    
         response = self.client.post('/api/users/' ,data, format='json')
@@ -31,11 +31,11 @@ class AuthTestCase(APITestCase):
             "user": {
                 "username": "eric",
                 "email": "eric@gmail.com",
-                "password": "incorrect"
+                "password": "Get/2015"
             }
         }
         response = self.client.post('/api/users/',data, format='json')
-        data = {"user": { "email": "eric@gmail.com", "password":"incorrect"}}
+        data = {"user": { "email": "eric@gmail.com", "password":"Get/2015"}}
         response = self.client.post('/api/users/login/',data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK) 
         assert 'token' in response.data
@@ -49,14 +49,14 @@ class AuthTestCase(APITestCase):
             "user": {
                 "username": "eric",
                 "email": "eric@gmail.com",
-                "password": "incorrect"
+                "password": "Get/2015"
             }
         }
         response = self.client.post('/api/users/',data, format='json')
         data = {
             "user": {
                 "email": "eric@gmail.com",
-                "password": "incorrect"
+                "password": "Get/2015"
             }
         }
         response = self.client.post('/api/users/login/',data, format='json')

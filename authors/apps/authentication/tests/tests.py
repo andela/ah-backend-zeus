@@ -9,7 +9,7 @@ class Authentication(APITestCase):
         """
         Method for testing registration of a new user.
         """
-        data = {"user": { "username":"lindsey", "email": "lindsey@gmail.com", "password":"lindseypatra"}}
+        data = {"user": { "username":"lindsey", "email": "lindsey@gmail.com", "password":"Get/2015"}}
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -20,7 +20,7 @@ class Authentication(APITestCase):
         data = {"user": { "username":"", "email": "lindsey@gmail.com", "password":"lindseypatra"}}
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("This field may not be blank.", str(response.data))
+        self.assertIn("Please the username should be at least 4 characters long and above", str(response.data))
 
     def test_for_missing_email(self):
         """
@@ -29,16 +29,16 @@ class Authentication(APITestCase):
         data = {"user": { "username":"lindsey", "email": "", "password":"lindseypatra"}}
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("This field may not be blank.", str(response.data))
+        self.assertIn("Please enter a valid email address", str(response.data))
 
         
     def test_login(self):
         """
         Method for logging in a  an existing user
         """
-        data = {"user": { "username":"lindsey", "email": "lindsey@gmail.com", "password":"lindseypatra"}}
+        data = {"user": { "username":"lindsey", "email": "lindsey@gmail.com", "password":"Get/2015"}}
         response = self.client.post('/api/users/',data, format='json')
-        data = {"user": { "email": "lindsey@gmail.com", "password":"lindseypatra"}}
+        data = {"user": { "email": "lindsey@gmail.com", "password":"Get/2015"}}
         response = self.client.post('/api/users/login/',data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(User.objects.get().email,"lindsey@gmail.com" )
