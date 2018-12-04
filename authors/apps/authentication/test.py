@@ -2,9 +2,10 @@ from django.urls import reverse, path
 from rest_framework.test import APITestCase
 from rest_framework import status
 from .models import User
+from ..profiles.models import UserProfile
 
 class Authentication(APITestCase):
-     
+    
     def test_for_new_user(self):
         """
         Method for testing registration of a new user.
