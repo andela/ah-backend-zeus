@@ -117,4 +117,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         return self.username
 
+    @property
+    def token(self):
+        """
+        Generate a JSON Web Token on Registration and Login with an expiry
+        date set to 14 days.
+        """
+        dt = datetime.now() + timedelta(days=14)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
 
