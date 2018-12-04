@@ -10,12 +10,14 @@ from .serializers import (
 )
 
 
+
 class RegistrationAPIView(APIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = RegistrationSerializer
 
+    
     def post(self, request):
         user = request.data.get('user', {})
 
@@ -27,6 +29,8 @@ class RegistrationAPIView(APIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    
 
 
 class LoginAPIView(APIView):
