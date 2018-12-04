@@ -1,4 +1,4 @@
-from django.urls import reverse, path
+from django.urls import path
 from rest_framework.test import APITestCase
 from rest_framework import status
 from ..models import User
