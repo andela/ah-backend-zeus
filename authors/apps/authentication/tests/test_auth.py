@@ -1,10 +1,36 @@
 from rest_framework import serializers, status
-from rest_framework.test import APITestCase
+from django.urls import path, reverse
+from rest_framework.test import APITestCase, APIRequestFactory
+from authors.apps.authentication.serializers import RegistrationSerializer
+from ..views import RegistrationAPIView, AccountVerified
 from ..backends import JWTAuthentication
-from ..models import User
+from ..models import User, UserManager
 
 class AuthTestCase(APITestCase):
-    '''Test JWT authentication for ah-backend-zues'''   
+    '''Test JWT authentication for ah-backend-zues''' 
+
+    def setUp(self):
+        self.user_data = {"user": { "username":"minime", "email": "alexkayabula@gmail.com", "password":"W123456/78"}}
+        self.url = reverse("registration")
+        self.client.post(self.url, self.user_data, format='json')
+        self.request = APIRequestFactory().post(
+            reverse("registration")
+        )
+        user = User.objects.get()
+        request = self.request
+        token, uid = RegistrationAPIView.generate_token(user, request)
+        response = self.account_verification(token, uid)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = User.objects.get()
+        self.assertTrue(user.is_verified) 
+
+    def account_verification(self, token, uid):
+        request = APIRequestFactory().get(
+            reverse("verify_account", kwargs={"token": token, "uid":uid})
+        )
+        verify = AccountVerified.as_view()
+        response = verify(request, token=token, uid=uid)
+        return response 
 
     def test_token_received_after_successful_registration(self):
         """
@@ -20,7 +46,6 @@ class AuthTestCase(APITestCase):
         }                    
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert 'token' in response.data
 
     def test_token_received_after_successful_login(self):
         """
@@ -34,9 +59,7 @@ class AuthTestCase(APITestCase):
                 "password": "Get/2015"
             }
         }
-        response = self.client.post('/api/users/',data, format='json')
-        data = {"user": { "email": "eric@gmail.com", "password":"Get/2015"}}
-        response = self.client.post('/api/users/login/',data, format='json')
+        response = self.client.post('/api/users/login/',self.user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK) 
         assert 'token' in response.data
 
@@ -47,16 +70,16 @@ class AuthTestCase(APITestCase):
         """
         data = {
             "user": {
-                "username": "eric",
-                "email": "eric@gmail.com",
-                "password": "Get/2015"
+                "username": "minime",
+                "email": "alexkayabula@gmail.com",
+                "password": "W123456/78"
             }
         }
         response = self.client.post('/api/users/',data, format='json')
         data = {
             "user": {
-                "email": "eric@gmail.com",
-                "password": "Get/2015"
+                "email": "alexkayabula@gmail.com",
+                "password": "W123456/78"
             }
         }
         response = self.client.post('/api/users/login/',data, format='json')

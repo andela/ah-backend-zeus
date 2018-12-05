@@ -68,6 +68,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     # will simply offer users a way to deactivate their account instead of
     # letting them delete it. That way they won't show up on the site anymore,
     # but we can still analyze the data.
+    is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
     # The `is_staff` flag is expected by Django to determine who can and cannot

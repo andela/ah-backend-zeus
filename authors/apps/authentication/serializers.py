@@ -15,9 +15,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
         min_length=8,
         write_only=True
     )
-
+    
     # The client should not be able to send a token along with a registration
     # request. Making `token` read-only handles that for us.
+    
 
     class Meta:
         model = User
@@ -71,7 +72,10 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'A user with this email and password was not found.'
             )
-
+        if user.is_verified is False:
+            raise serializers.ValidationError(
+                'This user has not been verified. Please signup or check your email and click the verification link'
+            )
         # Django provides a flag on our `User` model called `is_active`. The
         # purpose of this flag to tell us whether the user has been banned
         # or otherwise deactivated. This will almost never be the case, but
@@ -80,7 +84,6 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'This user has been deactivated.'
             )
-
         # The `validate` method should return a dictionary of validated data.
         # This is the data that is passed to the `create` and `update` methods
         # that we will see later on.

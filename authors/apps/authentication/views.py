@@ -4,6 +4,17 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .validations import validate_registration
+from django.core.mail import send_mail
+from authors.settings import EMAIL_HOST_USER, SECRET_KEY
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+import jwt
+from django.conf import settings
+from django.utils.encoding import force_bytes, force_text
+from rest_framework import generics
+from authors.apps.authentication.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from rest_framework.generics import GenericAPIView
 
 from .renderers import UserJSONRenderer
 from .serializers import (
@@ -30,10 +41,52 @@ class RegistrationAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        user = User.objects.filter(email=user['email']).first()
 
-    
+        RegistrationAPIView.generate_token(user, request)
+        # body = "click this link to verify your account   http://localhost:8000/api/users/verified_account/{}".format(
+        #     serializer.data['token'])
+        # receipient = serializer.data['email']
+        # email_sender = EMAIL_HOST_USER
+        # send_mail(subject, body, email_sender, [receipient], fail_silently=False)
+        return Response({'message': 'User successfully Registered, check your email and click the link to verify'}, status=status.HTTP_201_CREATED)
 
+    @staticmethod
+    def generate_token(user, request):
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.username)).decode('utf-8')
+        current_site = 'http://{}'.format(get_current_site(request))
+        route='api/users/verified_account'
+        url = "{}/{}/{}/{}".format(current_site, route, token, uid)
+        subject = "Hello {}".format(user.username + ", thank you for joining Authors haven")
+        body = "click this link to verify your account \n {}".format(url)
+        receipient = user.email
+        email_sender = EMAIL_HOST_USER
+        send_mail(subject, body, email_sender, [receipient], fail_silently=False)
+        
+        return token, uid
+
+
+class AccountVerified(GenericAPIView):
+
+    def get(self, request, token, uid):
+        username = force_text(urlsafe_base64_decode(uid))
+
+        user = User.objects.filter(username=username).first()
+        verify_token = default_token_generator.check_token(user, token)
+
+        msg = {"message": "email verified"}
+        st = status.HTTP_200_OK
+
+        if not verify_token:
+            msg["message"] = "token invalid"
+            st = status.HTTP_400_BAD_REQUEST
+
+        else:
+            user.is_verified = True
+            user.save()
+
+        return Response(msg, status=st)
 
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -49,6 +102,7 @@ class LoginAPIView(APIView):
         # handles everything we need.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
+        
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -78,4 +132,3 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-

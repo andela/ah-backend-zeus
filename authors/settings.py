@@ -152,5 +152,12 @@ REST_FRAMEWORK = {
     ),
 }
 
+EMAIL_HOST = os.environ.get("EMAIL_HOST", 'smtp.gmail.com')
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", 'seven.zeusgeek@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", 'Zeus@admin')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
 # Configure Django App for Heroku.
 django_heroku.settings(locals())
