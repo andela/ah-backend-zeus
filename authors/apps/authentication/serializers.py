@@ -148,4 +148,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         return instance
 
+class PasswordSerializer(serializers.Serializer):
+    new_password = serializers.CharField(max_length=255, required=True)
     
