@@ -18,7 +18,7 @@ from rest_framework.generics import GenericAPIView
 
 from .renderers import UserJSONRenderer
 from .serializers import (
-    LoginSerializer, RegistrationSerializer, UserSerializer
+    LoginSerializer, RegistrationSerializer, UserSerializer, PasswordSerializer
 )
 
 
@@ -87,6 +87,67 @@ class AccountVerified(GenericAPIView):
             user.save()
 
         return Response(msg, status=st)
+
+def generate_password_reset_token(data):
+    token = jwt.encode({
+        'email': data
+    }, settings.SECRET_KEY, algorithm='HS256')
+
+    return token.decode('utf-8')
+
+
+class PasswordResetAPIView(generics.CreateAPIView):
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = UserSerializer
+
+    def post(self, request):
+        user_data = request.data['user']['email']
+
+        if not user_data:
+            return Response({"message": "Please enter your email"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=user_data)
+
+            token = generate_password_reset_token(user_data)
+
+            serializer_data = self.serializer_class(user)
+            email_sender = EMAIL_HOST_USER
+            receipient = [serializer_data['email'].value]
+            subject = "Password Reset "
+            message = "Click this link to reset your password:" + "http://{}/api/users/password_update/{}".format(
+                get_current_site(request), token)
+            send_mail(subject, message, email_sender,
+                      receipient, fail_silently=False)
+            return Response(
+                {'message': 'Check your email for the password reset link', "token": token}, status=status.HTTP_201_CREATED)
+        except:
+            return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PasswordUpdateAPIView(generics.UpdateAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PasswordSerializer
+    #The URL conf should include a keyword argument corresponding to this value
+    look_url_kwarg = 'token'
+
+    def update(self, request, *args, **kwargs):
+        token = self.kwargs.get(self.look_url_kwarg)
+        new_password = request.data.get('new_password')
+
+        if not new_password:
+            return Response({"message": "Please enter your password"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            decode_token = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=['HS256'])
+            user = User.objects.get(email=decode_token['email'])
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Your password has been reset'}, status=status.HTTP_201_CREATED)
+        except:
+            return Response({'message': 'Cannot reset password'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
