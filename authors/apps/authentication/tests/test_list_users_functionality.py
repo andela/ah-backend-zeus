@@ -1,4 +1,4 @@
-from rest_framework.test import APITestCase, APIRequestFactory
+from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from rest_framework import status
 import json
 from rest_framework.reverse import reverse
@@ -25,6 +25,7 @@ class ListUserFunctionalityTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user =User.objects.get()
         self.assertTrue(user.is_verified)
+        # self.client = 
     
     def account_verification(self, token, uid):
         request = APIRequestFactory().get(
@@ -43,4 +44,5 @@ class ListUserFunctionalityTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(body['authors'][0]['username'], 'Jack Sparrow')
         self.assertEqual(body['authors'][0]['email'], 'sparrow@gmail.com')
+      
 
