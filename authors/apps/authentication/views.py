@@ -207,7 +207,7 @@ class UsersRetrieveAPIView(APIView):
         serializer = self.serializer_class(users, many=True)
         response = {'authors': serializer.data}
         for author, obj in zip(response['authors'], User.objects.all()):
-            author['profile'] = reverse('profile', args=[obj.id], request=request)
+            author['profile'] = reverse('profile', request=request)
             del author['token']
         return JsonResponse(response, status=200, safe=False)
 
