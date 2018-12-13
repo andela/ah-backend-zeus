@@ -21,5 +21,5 @@ urlpatterns = [
     path('api/', include('authors.apps.authentication.urls')),
     path('api/', include('authors.apps.articles.urls')),
     path('api/', include('authors.apps.profiles.urls')),
+    path('api/social/', include('authors.apps.social_auth_login.urls')),
 ]
-
