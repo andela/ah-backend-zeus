@@ -30,7 +30,18 @@ class AuthTestCase(APITestCase):
         )
         verify = AccountVerified.as_view()
         response = verify(request, token=token, uid=uid)
-        return response 
+        return response
+    
+    def test_api_returns_error_when_registering_with_invalid_data(self):
+        user_data = {
+            'user': {
+                'username': '',
+                'email': 'user@gmail.com',
+                'password': 'Bl4ckP@nther'
+            }
+        }
+        response = self.client.post('/api/users/', data=user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_token_received_after_successful_registration(self):
         """

@@ -1,13 +1,17 @@
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,
-    ListCreateAPIView)
-from .models import Article
+    RetrieveUpdateDestroyAPIView, ListCreateAPIView
+)
+from rest_framework.views import APIView
+from .models import Article, Rating
 from .renderers import ArticleJSONRenderer
-from .serializers import ArticleSerializer
+from .serializers import ArticleSerializer, RatingSerializer
+from django.db.models import Avg
+from authors.apps.authentication.models import User
+from authors.apps.profiles.models import UserProfile
 
 
 class ArticleViewSet(ListCreateAPIView):
@@ -31,9 +35,6 @@ class ArticleViewSet(ListCreateAPIView):
 
 
 class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
-    """
-    article retrieve, update and delete views
-    """
     permission_classes = (IsAuthenticatedOrReadOnly,)
     queryset = Article.objects.all()
     renderer_classes = (ArticleJSONRenderer,)
@@ -41,7 +42,6 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
     lookup_field = 'slug'
 
     def retrieve(self, request, slug):
-
         try:
             serializer_instance = self.queryset.get(slug=slug)
         except Article.DoesNotExist:
@@ -51,7 +51,6 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, slug):
-
         try:
             serializer_instance = self.queryset.get(slug=slug)
         except Article.DoesNotExist:
@@ -66,12 +65,61 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
     def destroy(self, request, slug):
-
         try:
             serializer_instance = self.queryset.get(slug=slug)
         except Article.DoesNotExist:
             raise NotFound('An article with this slug does not exist.')
-        self.perform_destroy(serializer_instance)
+
         return Response(
-            "Article successfully deleted! ",
+            "The Article has been successfully deleted",
             status=status.HTTP_204_NO_CONTENT)
+
+
+class RatingsView(APIView):
+    """
+    View to add ratings to articles.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, slug):
+        try:
+            article = Article.objects.get(slug=slug)
+            user = User.objects.get(username=request.user.username)
+            profile = UserProfile.objects.get(user_id=user.id)
+            rating = {
+                'user': profile.id,
+                'article_id': article.id,
+                'score': request.data['rating']
+            }
+            assert 1 <= request.data['rating'] <= 5, (
+                'Rating should be from 1 to 5'
+            )
+        except Exception as e:
+            if isinstance(e, AssertionError) or isinstance(e, KeyError):
+                message = {'error': str(e)}
+                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            raise NotFound(str(e))
+        self.store_rating(rating)
+        self.update_article_rating(article.id)
+        return Response({'message': 'Rating successfully updated.'}, status=201)
+    
+    def store_rating(self, rating):
+        try:
+            article_rating = Rating.objects.filter(
+                article_id=rating['article_id'],
+                user=rating['user']
+            )[0]
+            article_rating.score = rating['score']
+            article_rating.save()
+        except:
+            serializer = RatingSerializer(data=rating)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+    
+    def update_article_rating(self, article_id):
+        article_ratings = Rating.objects.all().filter(article_id=article_id)
+        average = article_ratings.aggregate(Avg('score'))
+        article = Article.objects.filter(id=article_id)[0]
+        article.score = round(average['score__avg'], 1)
+        article.save()
+

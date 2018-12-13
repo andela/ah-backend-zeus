@@ -1,4 +1,5 @@
 from django.db import models
+from authors.apps.profiles.models import UserProfile
 from authors.apps.core.models import TimestampedModel
 
 
@@ -6,7 +7,6 @@ class Article(TimestampedModel):
     """
     Create and return an `Article` with a title, description and body.
     """
-
     slug = models.SlugField(
         db_index=True,
         max_length=255,
@@ -19,6 +19,16 @@ class Article(TimestampedModel):
         'profiles.UserProfile',
         on_delete=models.CASCADE,
         related_name='articles')
+    score = models.FloatField(default=0)
 
     def __str__(self):
         return self.title
+
+
+class Rating(models.Model):
+    """
+    Model to store ratings for user created articles.
+    """
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    article_id = models.ForeignKey(Article, on_delete=models.CASCADE)
+    score = models.IntegerField()
