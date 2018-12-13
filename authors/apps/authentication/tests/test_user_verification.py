@@ -43,6 +43,24 @@ class TestUserVerification(APITestCase):
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn ("{'message': 'User successfully Registered, check your email and click the link to verify'}", str(response.data) )
+
+    def test_for_new_user_without_email(self):
+        """
+        Method for testing registration of a new user without an email.
+        """
+        data = {"user": { "username":"lindsey1", "email": "", "password":"Lindseypatra1/"}}
+        response = self.client.post('/api/users/' ,data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert 'errors' in response.data
+        
+    def test_for_new_user_without_username(self):
+        """
+        Method for testing registration of a new user without a username.
+        """
+        data = {"user": { "username":"", "email": "lindsey1@gmail.com", "password":"Lindseypatra1/"}}
+        response = self.client.post('/api/users/' ,data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        assert 'errors' in response.data
     
     def test_login_unverified_user(self):
         """
@@ -62,3 +80,4 @@ class TestUserVerification(APITestCase):
         response = self.client.post('/api/users/login/',self.user_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK) 
         assert 'token' in response.data
+

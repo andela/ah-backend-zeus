@@ -38,7 +38,7 @@ class SocialTests(APITestCase):
 
     def test_login_with_invalid_google_token(self):
         """
-        Test if a user can login with an invalid or expired google token 
+        Test if a user can login with an invalid or expired google token
         """
 
         response = self.client.post(
@@ -46,7 +46,8 @@ class SocialTests(APITestCase):
             self.user_with_invalid_or_expired_google_token, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'The token is invalid or expired. Please login again.', str(response.data))
+            'The token is invalid or expired. Please login again.', str(
+                response.data))
 
     def test_login_with_invalid_or_expired_google_token(self):
         """
@@ -58,18 +59,22 @@ class SocialTests(APITestCase):
             self.user_with_invalid_or_expired_google_token, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'The token is invalid or expired. Please login again.', str(response.data))
+            'The token is invalid or expired. Please login again.', str(
+                response.data))
 
     def test_login_with_invalid_facebook_token(self):
         """
-        Test if a user can login with an invalid or expired facebook token 
+        Test if a user can login with an invalid or expired facebook token
         """
 
         response = self.client.post(
-            "/api/social/auth/facebook/", self.user_with_invalid_or_expired_facebook_token, format='json')
+            "/api/social/auth/facebook/",
+            self.user_with_invalid_or_expired_facebook_token,
+            format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'The token is invalid or expired. Please login again.', str(response.data))
+            'The token is invalid or expired. Please login again.', str(
+                response.data))
 
     def test_login_with_invalid_or_expired_facebook_token(self):
         """
@@ -93,4 +98,5 @@ class SocialTests(APITestCase):
             self.user_with_invalid_or_expired_twitter_token, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
-            'The token is invalid or expired. Please login again.', str(response.data))
+            'The token is invalid or expired. Please login again.', str(
+                response.data))
