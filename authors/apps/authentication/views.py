@@ -25,14 +25,12 @@ from .models import User
 from django.http import JsonResponse
 
 
-
 class RegistrationAPIView(APIView):
     # Allow any user (authenticated or not) to hit this endpoint.
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = RegistrationSerializer
 
-    
     def post(self, request):
         user = request.data.get('user', {})
         validate_registration(user)
@@ -47,11 +45,6 @@ class RegistrationAPIView(APIView):
         user = User.objects.filter(email=user['email']).first()
 
         RegistrationAPIView.generate_token(user, request)
-        # body = "click this link to verify your account   http://localhost:8000/api/users/verified_account/{}".format(
-        #     serializer.data['token'])
-        # receipient = serializer.data['email']
-        # email_sender = EMAIL_HOST_USER
-        # send_mail(subject, body, email_sender, [receipient], fail_silently=False)
         return Response({'message': 'User successfully Registered, check your email and click the link to verify'}, status=status.HTTP_201_CREATED)
 
     @staticmethod
@@ -59,14 +52,16 @@ class RegistrationAPIView(APIView):
         token = default_token_generator.make_token(user)
         uid = urlsafe_base64_encode(force_bytes(user.username)).decode('utf-8')
         current_site = 'http://{}'.format(get_current_site(request))
-        route='api/users/verified_account'
+        route = 'api/users/verified_account'
         url = "{}/{}/{}/{}".format(current_site, route, token, uid)
-        subject = "Hello {}".format(user.username + ", thank you for joining Authors haven")
+        subject = "Hello {}".format(
+            user.username + ", thank you for joining Authors haven")
         body = "click this link to verify your account \n {}".format(url)
         receipient = user.email
         email_sender = EMAIL_HOST_USER
-        send_mail(subject, body, email_sender, [receipient], fail_silently=False)
-        
+        send_mail(subject, body, email_sender, [
+                  receipient], fail_silently=False)
+
         return token, uid
 
 
@@ -90,6 +85,7 @@ class AccountVerified(GenericAPIView):
             user.save()
 
         return Response(msg, status=st)
+
 
 def generate_password_reset_token(data):
     token = jwt.encode({
@@ -129,11 +125,10 @@ class PasswordResetAPIView(generics.CreateAPIView):
             return Response({'message': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class PasswordUpdateAPIView(generics.UpdateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PasswordSerializer
-    #The URL conf should include a keyword argument corresponding to this value
+    # The URL conf should include a keyword argument corresponding to this value
     look_url_kwarg = 'token'
 
     def update(self, request, *args, **kwargs):
@@ -152,6 +147,7 @@ class PasswordUpdateAPIView(generics.UpdateAPIView):
         except:
             return Response({'message': 'Cannot reset password'}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginAPIView(APIView):
     permission_classes = (AllowAny,)
     renderer_classes = (UserJSONRenderer,)
@@ -166,7 +162,6 @@ class LoginAPIView(APIView):
         # handles everything we need.
         serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
-        
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -210,4 +205,3 @@ class UsersRetrieveAPIView(APIView):
             author['profile'] = reverse('profile', request=request)
             del author['token']
         return JsonResponse(response, status=200, safe=False)
-
