@@ -45,6 +45,10 @@ class BaseTest(APITestCase):
             }
         }
 
+        self.rate_article = {
+            'rating': 5
+        }
+
         user = User.objects.get()
         request = self.request
         token, uid = RegistrationAPIView.generate_token(user, request)
@@ -56,12 +60,13 @@ class BaseTest(APITestCase):
         response = self.client.post(
             '/api/users/login/',
             self.user_data,
-            format='json')
+            format='json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.login_token = response.data['token']
         self.client.credentials(
-            HTTP_AUTHORIZATION='Bearer ' +
-            self.login_token)
+            HTTP_AUTHORIZATION='Bearer ' + self.login_token
+        )
 
     def account_verification(self, token, uid):
         request = APIRequestFactory().get(
