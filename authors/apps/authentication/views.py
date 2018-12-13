@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (AllowAny,IsAuthenticated,IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .validations import validate_registration
@@ -16,12 +16,12 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from rest_framework.generics import GenericAPIView
 from rest_framework.reverse import reverse
-
 from .renderers import UserJSONRenderer
 from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer, PasswordSerializer
 )
 from .models import User
+from authors.apps.articles.models import Article
 from django.http import JsonResponse
 
 

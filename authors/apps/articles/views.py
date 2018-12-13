@@ -3,10 +3,16 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView, ListCreateAPIView
-)
+    RetrieveUpdateDestroyAPIView,RetrieveUpdateAPIView,
+    ListCreateAPIView)
+from .models import Article
+from authors.apps.profiles.models import UserProfile
+from rest_framework.generics import (
+    RetrieveUpdateDestroyAPIView,RetrieveUpdateAPIView,
+    ListCreateAPIView)
 from rest_framework.views import APIView
 from .models import Article, Rating
+
 from .renderers import ArticleJSONRenderer
 from .serializers import ArticleSerializer, RatingSerializer
 from .pagination import PageNumbering
@@ -70,7 +76,7 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
     def destroy(self, request, slug):
         try:
             serializer_instance = self.queryset.get(slug=slug)
-        except Article.DoesNotExist:
+        except Article.DoesNotExist: 
             raise NotFound('An article with this slug does not exist.')
 
         return Response(

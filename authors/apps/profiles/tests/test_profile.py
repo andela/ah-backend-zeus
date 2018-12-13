@@ -2,9 +2,9 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import path, reverse
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
-from ..authentication.views import RegistrationAPIView, AccountVerified
-from ..authentication.models import User
-from ..authentication.backends import JWTAuthentication
+from authors.apps.authentication.views import RegistrationAPIView, AccountVerified
+from authors.apps.authentication.models import User
+from authors.apps.authentication.backends import JWTAuthentication
 
 
 class TestUserProfile(APITestCase):
