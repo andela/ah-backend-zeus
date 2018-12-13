@@ -2,6 +2,7 @@ from django.db import models
 from authors.apps.profiles.models import UserProfile
 from authors.apps.core.models import TimestampedModel
 from django.contrib.postgres.fields import ArrayField
+from ..profiles.models import UserProfile
 
 
 class Article(TimestampedModel):

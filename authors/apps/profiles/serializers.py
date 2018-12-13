@@ -13,3 +13,9 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['photo','bio','fun_fact']
+
+class FavoriteArticleSerializer(serializers.Serializer):
+
+    class Meta:
+        model = UserProfile
+        fields = ['favorite_article']
