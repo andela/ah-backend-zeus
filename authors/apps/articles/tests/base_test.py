@@ -10,6 +10,7 @@ class BaseTest(APITestCase):
 
     def setUp(self):
         self.slug = 0
+        self.sg = 0
         self.user_data = {
             "user": {
                 "username": "minime",
@@ -82,6 +83,6 @@ class BaseTest(APITestCase):
             data=self.new_article,
             format='json')
         response = self.client.get('/api/articles/', format='json')
-        for i in response.data:
+        for i in response.data['results']:
             self.slug = i['slug']
         return self.slug
