@@ -180,3 +180,35 @@ class TestComment(CommentTest):
             data=upate_reply,
             format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+    
+    def test_delete_comment(self):
+        """
+           tests for updating a comment
+        """
+        article = self.client.post(
+            '/api/articles/',
+            data=self.new_article,
+            format='json')
+        slug = self.get_slug(article)
+
+        created_comment = self.client.post(
+            '/api/{}/comments/'.format(slug),
+            data=self.post_comment,
+            format='json')
+        slug = self.get_slug(created_comment)
+
+        comment_id = created_comment.data['id']
+
+        update_comment = {"comment": {
+            "comment_body": "woooow!"
+        }}
+        response = self.client.delete(
+            '/api/comment/{}/'.format(comment_id),
+            data=update_comment,
+            format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+    
+
+ 
+      
+ 
