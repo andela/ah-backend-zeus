@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from .models import Article, Rating
 from .renderers import ArticleJSONRenderer
 from .serializers import ArticleSerializer, RatingSerializer
+from .pagination import PageNumbering
 from django.db.models import Avg
 from authors.apps.authentication.models import User
 from authors.apps.profiles.models import UserProfile
@@ -22,6 +23,7 @@ class ArticleViewSet(ListCreateAPIView):
     queryset = Article.objects.all()
     renderer_classes = (ArticleJSONRenderer,)
     serializer_class = ArticleSerializer
+    pagination_class = PageNumbering
 
     def create(self, request):
         serializer_context = {'author': request.user.userprofile}
@@ -40,6 +42,7 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
     renderer_classes = (ArticleJSONRenderer,)
     serializer_class = ArticleSerializer
     lookup_field = 'slug'
+    pagination_class = PageNumbering
 
     def retrieve(self, request, slug):
         try:
@@ -122,4 +125,3 @@ class RatingsView(APIView):
         article = Article.objects.filter(id=article_id)[0]
         article.score = round(average['score__avg'], 1)
         article.save()
-
