@@ -1,6 +1,7 @@
 from django.db import models
 from authors.apps.profiles.models import UserProfile
 from authors.apps.core.models import TimestampedModel
+from django.contrib.postgres.fields import ArrayField
 
 
 class Article(TimestampedModel):
@@ -20,6 +21,7 @@ class Article(TimestampedModel):
         on_delete=models.CASCADE,
         related_name='articles')
     score = models.FloatField(default=0)
+    images = ArrayField(models.URLField(max_length=255),default=list)
 
     def __str__(self):
         return self.title
