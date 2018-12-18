@@ -25,7 +25,6 @@ class ListUserFunctionalityTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user =User.objects.get()
         self.assertTrue(user.is_verified)
-        # self.client = 
     
     def account_verification(self, token, uid):
         request = APIRequestFactory().get(

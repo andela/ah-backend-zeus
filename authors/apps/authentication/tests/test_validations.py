@@ -32,7 +32,7 @@ class Authentication(APITestCase):
         data = {"user": { "username" : "samrub", "email" : "samrub@gmail.com", "password" : "dvhhshbdbbb"}}
         response = self.client.post('/api/users/' ,data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self. assertIn("Weak password: password should contain at least 8 characters long ,capital letter and a number", str(response.data))
+        self. assertIn("Weak password: password should contain at least 8 characters, a capital letter and a number.", str(response.data))
 
     def test_for_wrong_email(self):
         """
