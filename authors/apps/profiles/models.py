@@ -10,10 +10,18 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User,on_delete= models.CASCADE)
     bio = models.TextField(blank=True)
     fun_fact = models.TextField(blank=True)
-  
     time_when_updated = models.DateTimeField(auto_now=True)
     favorite_article = ArrayField(models.CharField(max_length=100), default=list)
  
+    def __str__(self):
+        return self.user.username
+
+
+class Follow(models.Model):
+    follower = models.ForeignKey(User, on_delete=models.CASCADE)
+    followed = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

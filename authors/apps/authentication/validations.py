@@ -59,8 +59,8 @@ def valid_password(password):
             {
 
                 'password':
-                'Weak password: password should contain'+ 
-                ' at least 8 characters long ' + ',' + 'capital letter and a number'
+                'Weak password: password should contain ' + 
+                'at least 8 characters, a capital letter and a number.'
             }
 
         )
