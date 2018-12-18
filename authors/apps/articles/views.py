@@ -1,36 +1,20 @@
 from rest_framework import mixins, status, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
-from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
-    ListCreateAPIView)
-from .models import Article
-from authors.apps.profiles.models import UserProfile
-from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
-    ListCreateAPIView)
 from rest_framework.views import APIView
-from .models import Article, Rating
-
-from .renderers import ArticleJSONRenderer
-from .serializers import ArticleSerializer, RatingSerializer
-from .pagination import PageNumbering
-from django.db.models import Avg
-from authors.apps.profiles.models import UserProfile
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly, IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,
-    ListCreateAPIView)
+    RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
+    ListCreateAPIView, ListAPIView)
 from .models import (
-    Article, Impressions, Report)
+    Article, Impressions, Rating, Report, Tag)
 from .renderers import ArticleJSONRenderer
 from .serializers import (
     ArticleSerializer, ImpressionSerializer,
-    RatingSerializer, ArticleReportSerializer)
+    RatingSerializer, ArticleReportSerializer, TagSerializer)
+from .pagination import PageNumbering
+from django.db.models import Avg
+from authors.apps.profiles.models import UserProfile
 from ..authentication.models import User
 from django.db.models import Count
 
@@ -320,3 +304,17 @@ class ReportArticlesView(generics.GenericAPIView):
                   receipient], fail_silently=False)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class TagListView(ListAPIView):
+    queryset = Tag.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = TagSerializer
+
+    def taglist(self, request):
+        serializer_data = self.get_queryset()
+        serializer = self.serializer_class(serializer_data, many=True)
+
+        return Response({
+            'tags': serializer_data
+        }, status=status.HTTP_200_OK)

@@ -9,7 +9,8 @@ from authors.apps.authentication.models import User
 
 class Article(TimestampedModel):
     """
-    Create and return an `Article` with a title, description and body.
+    Create and return an `Article` with a title, 
+    description, body and tags associated with the article.
     """
     slug = models.SlugField(
         db_index=True,
@@ -24,7 +25,7 @@ class Article(TimestampedModel):
         on_delete=models.CASCADE,
         related_name='articles')
     score = models.FloatField(default=0)
-    images = ArrayField(models.URLField(max_length=255),default=list)
+    images = ArrayField(models.URLField(max_length=255), default=list)
     likes = models.IntegerField(
         db_index=True,
         default=False
@@ -32,6 +33,9 @@ class Article(TimestampedModel):
     dislikes = models.IntegerField(
         db_index=True,
         default=False
+    )
+    tags = models.ManyToManyField(
+        'articles.Tag', related_name='articles'
     )
 
     def __str__(self):
@@ -46,7 +50,7 @@ class Rating(models.Model):
     article_id = models.ForeignKey(Article, on_delete=models.CASCADE)
     score = models.IntegerField()
 
-    
+
 class Impressions(TimestampedModel):
     """
     Create an `Impression` with a slug, user details, likes and dislikes.
@@ -78,6 +82,17 @@ class Report(models.Model):
     reported = models.BooleanField(default=False)
     reported_at = models.DateTimeField(auto_now_add=True)
     reason = models.CharField(max_length=500, blank=False)
-    
+
     def __str__(self):
         return self.reason
+
+
+class Tag(TimestampedModel):
+    """
+    Tag Model to allow authors add tags to their articles they create
+    """
+    tag = models.CharField(max_length=255)
+    slug = models.SlugField(db_index=True, unique=True)
+
+    def __str__(self):
+        return self.tag
