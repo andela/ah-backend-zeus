@@ -50,6 +50,16 @@ class Test_article(BaseTest):
             format='json')
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
+    def test_update_article_doesnot_exist(self):
+        self.client.post(
+            '/api/articles/', data=self.new_article, format='json')
+
+        response = self.client.put(
+            '/api/articles/blahblahblah',
+            data=self.update_article,
+            format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_delete_article(self):
         created_article = self.client.post(
             '/api/articles/', data=self.new_article, format='json')
