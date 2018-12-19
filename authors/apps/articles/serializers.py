@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from authors.apps.profiles.serializers import GetUserProfileSerializer
-from .models import Article, Rating
+from .models import Article, Rating, Report
 from authors.apps.profiles.serializers import (
     GetUserProfileSerializer)
 from .models import (
@@ -70,3 +70,7 @@ class ImpressionSerializer(serializers.ModelSerializer):
         return instance.updated_at.isoformat()
 
 
+class ArticleReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Report
+        fields = '__all__'

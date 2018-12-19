@@ -3,12 +3,12 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
     ListCreateAPIView)
 from .models import Article
 from authors.apps.profiles.models import UserProfile
 from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
     ListCreateAPIView)
 from rest_framework.views import APIView
 from .models import Article, Rating
@@ -26,13 +26,21 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
     ListCreateAPIView)
 from .models import (
-    Article, Impressions)
+    Article, Impressions, Report)
 from .renderers import ArticleJSONRenderer
 from .serializers import (
     ArticleSerializer, ImpressionSerializer,
-    RatingSerializer)
+    RatingSerializer, ArticleReportSerializer)
 from ..authentication.models import User
 from django.db.models import Count
+
+from rest_framework import generics
+from rest_framework import authentication
+from rest_framework.authentication import get_authorization_header
+from rest_framework.exceptions import NotFound, APIException
+import jwt
+from authors.settings import EMAIL_HOST_USER, SECRET_KEY
+from django.core.mail import send_mail
 
 
 class ArticleViewSet(ListCreateAPIView):
@@ -90,7 +98,7 @@ class ArticleRetrieve(RetrieveUpdateDestroyAPIView):
     def destroy(self, request, slug):
         try:
             serializer_instance = self.queryset.get(slug=slug)
-        except Article.DoesNotExist: 
+        except Article.DoesNotExist:
             raise NotFound('An article with this slug does not exist.')
 
         self.perform_destroy(serializer_instance)
@@ -126,7 +134,7 @@ class RatingsView(APIView):
         self.store_rating(rating)
         self.update_article_rating(article.id)
         return Response({'message': 'Rating successfully updated.'}, status=201)
-    
+
     def store_rating(self, rating):
         try:
             article_rating = Rating.objects.filter(
@@ -139,7 +147,7 @@ class RatingsView(APIView):
             serializer = RatingSerializer(data=rating)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-    
+
     def update_article_rating(self, article_id):
         article_ratings = Rating.objects.all().filter(article_id=article_id)
         average = article_ratings.aggregate(Avg('score'))
@@ -183,8 +191,8 @@ class LikeArticle(ListCreateAPIView):
     def updateimpression(self, impression):
         try:
             item = Impressions.objects.filter(
-                user = impression['user'],
-                slug = impression['slug']
+                user=impression['user'],
+                slug=impression['slug']
             )[0]
             if item.likes == True:
                 item.likes = False
@@ -237,8 +245,8 @@ class DislikeArticle(ListCreateAPIView):
     def updateimpression(self, impression):
         try:
             item = Impressions.objects.filter(
-                user = impression['user'],
-                slug = impression['slug']
+                user=impression['user'],
+                slug=impression['slug']
             )[0]
             if item.dislikes == True:
                 item.dislikes = False
@@ -253,3 +261,62 @@ class DislikeArticle(ListCreateAPIView):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
+
+
+class ReportArticlesView(generics.GenericAPIView):
+    """
+    Report articles violating terms of agreement
+    """
+    serializer_class = ArticleReportSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_token(self, request):
+        try:
+            auth_header = authentication.get_authorization_header(request).split()[
+                1]
+            token = jwt.decode(auth_header, SECRET_KEY, 'utf-8')
+            author_id = token['id']
+            return author_id
+        except:
+            return ("Token is invalid")
+
+    def post(self, request, slug, **kwargs):
+        try:
+            article_id = (Article.objects.get(slug=slug).id)
+        except:
+            return Response({
+                "message": "Article does not exist!"
+            })
+
+        reason = request.data.get('reason')
+
+        author_id = (self.get_token(request))
+
+        if Report.objects.filter(reporter=author_id).filter(article=article_id).exists():
+            return Response({
+                "message": "You have already reported this Article"
+            })
+        article_data = Article.objects.get(pk=article_id)
+        new_report = {
+            "article": article_id,
+            "article_title": article_data.title,
+            "reported": True,
+            "reason": reason,
+            "reporter": author_id
+        }
+
+        serializer = self.serializer_class(data=new_report)
+        serializer.is_valid()
+        serializer.save()
+
+        # Send a violations report email to the Authors Haven administrator
+
+        subject = "ARTICLES VIOLATIONS ALERT"
+        user = User.objects.get(pk=author_id)
+        body = f"Article: {article_id}, \nReported: {new_report['reported']},\nReported by: {user.username}, \nReason: {new_report['reason']}"
+        receipient = EMAIL_HOST_USER
+        email_sender = EMAIL_HOST_USER
+        send_mail(subject, body, email_sender, [
+                  receipient], fail_silently=False)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
