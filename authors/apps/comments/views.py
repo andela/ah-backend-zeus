@@ -4,9 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
-from authors.apps.comments.models import Comments, Replies
+from authors.apps.comments.models import Comments, Replies, Impressions
 from authors.apps.articles.models import Article
-from authors.apps.comments.serializers import RepliesSerializer, CommentSerializer
+from authors.apps.comments.serializers import RepliesSerializer, CommentSerializer, ImpressionSerializer
+from rest_framework.generics import (
+    RetrieveUpdateDestroyAPIView,RetrieveUpdateAPIView,
+    ListCreateAPIView)
+from ..authentication.models import User
+from django.db.models import Count
 
 
 def get_object(obj_Class, pk):
@@ -123,3 +128,51 @@ class RepliesView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class LikeComment(ListCreateAPIView):
+    """
+    ca view class to handle liking a comment
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, comment_id):
+        user = User.objects.get(username=request.user.username)
+
+        impression = {
+            'user': user.id,
+            'likes': True,
+            'comment': comment_id
+        }
+        self.updateimpression(impression)
+        try:
+            impression = Impressions.objects.all().filter(comment=comment_id, likes=True)
+            total_likes = impression.aggregate(Count('likes'))
+            comment = Comments.objects.get(id=comment_id)
+            comment.likes = total_likes['likes__count']
+            comment.save()
+        except Comments.DoesNotExist:
+            raise NotFound('A comment with this id does not exist.')
+        return Response(
+            {'message': 'i liked this.'},
+            status=status.HTTP_201_CREATED)
+
+    def updateimpression(self, impression):
+        try:
+            item = Impressions.objects.filter(
+                user = impression['user'],
+                comment = impression['comment']
+            )[0]
+            if item.likes == True:
+                item.likes = False
+            else:
+                item.likes = True
+            item.save()
+        except:
+            serializer = ImpressionSerializer(
+                data=impression
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
