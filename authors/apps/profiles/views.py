@@ -49,7 +49,7 @@ class FavoriteArticle(RetrieveUpdateAPIView):
             userprofile_obj.favorite_article.remove(slug)
             userprofile_obj.save() 
             return Response("unfavorited!")
-        
+    
         userprofile_obj.favorite_article.append(slug)
         userprofile_obj.save(update_fields = ['favorite_article'])
         return Response("favorited!")
@@ -143,3 +143,4 @@ class FollowersView(APIView):
             username = User.objects.get(id=follow['follower']).username
             followers.append(username)
         return Response({'followers': followers}, status=status.HTTP_200_OK)
+        

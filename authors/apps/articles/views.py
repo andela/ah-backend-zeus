@@ -14,7 +14,12 @@ from .serializers import (
     RatingSerializer, ArticleReportSerializer, TagSerializer)
 from .pagination import PageNumbering
 from django.db.models import Avg
+from authors.apps.articles.models import Article, BookMarkArticle
 from authors.apps.profiles.models import UserProfile
+from .renderers import ArticleJSONRenderer
+from .serializers import (
+    ArticleSerializer, ImpressionSerializer,
+    RatingSerializer, BookMarkArticleSerializer)
 from ..authentication.models import User
 from django.db.models import Count
 
@@ -318,3 +323,47 @@ class TagListView(ListAPIView):
         return Response({
             'tags': serializer_data
         }, status=status.HTTP_200_OK)
+class BookMarkArticleView(ListCreateAPIView):
+    """
+    class for bookmarking and unbookmarking an article
+    """
+    permission_classes = (IsAuthenticated,)
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    def post(self,request,slug):
+        try:
+            serializer_instance = self.queryset.get(slug=slug)
+        except Article.DoesNotExist:
+            return Response('An article with this slug does not exist.',status.HTTP_404_NOT_FOUND)
+        obj = BookMarkArticle.objects.filter(article=slug)
+
+        if len(obj)==0:
+            bk = {'user': request.user.id, 'article': slug}
+            serializer = BookMarkArticleSerializer(data=bk)
+            serializer.is_valid()
+            serializer.save()
+        
+        if obj:
+            obj.delete()
+            return Response({'message':'article unbookmarked'},status.HTTP_204_NO_CONTENT)
+        serializer = self.serializer_class(serializer_instance)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class BookMarkView(ListCreateAPIView):
+    """
+    class for getting bookmarked articles
+    """
+    permission_classes = (IsAuthenticated,)
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    article = []
+    def get(self,request):
+        obj = BookMarkArticle.objects.filter(user_id=request.user.id)
+        for i in obj:
+            serializer_instance = self.queryset.get(slug=i.article)
+            serializer = self.serializer_class(serializer_instance)
+            self.article.append(serializer.data)
+        
+        return Response(self.article)
+        
