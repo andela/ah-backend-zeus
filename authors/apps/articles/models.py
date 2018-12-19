@@ -4,6 +4,7 @@ from authors.apps.authentication.models import User
 from authors.apps.core.models import TimestampedModel
 from django.contrib.postgres.fields import ArrayField
 from ..profiles.models import UserProfile
+from authors.apps.authentication.models import User
 
 
 class Article(TimestampedModel):
@@ -70,3 +71,13 @@ class Impressions(TimestampedModel):
         default=None
     )
 
+
+class Report(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    reported = models.BooleanField(default=False)
+    reported_at = models.DateTimeField(auto_now_add=True)
+    reason = models.CharField(max_length=500, blank=False)
+    
+    def __str__(self):
+        return self.reason
