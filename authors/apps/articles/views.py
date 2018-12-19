@@ -168,8 +168,11 @@ class LikeArticle(ListCreateAPIView):
         try:
             impression = Impressions.objects.all().filter(slug=slug, likes=True)
             total_likes = impression.aggregate(Count('likes'))
+            impression = Impressions.objects.all().filter(slug=slug, dislikes=True)
+            total_dislikes = impression.aggregate(Count('dislikes'))
             article = Article.objects.get(slug=slug)
             article.likes = total_likes['likes__count']
+            article.dislikes = total_dislikes['dislikes__count']
             article.save()
         except Article.DoesNotExist:
             raise NotFound('An article with this slug does not exist.')
@@ -185,7 +188,8 @@ class LikeArticle(ListCreateAPIView):
             )[0]
             if item.likes == True:
                 item.likes = False
-            elif item.likes == False and item.dislikes == True:
+                item.dislikes = False
+            else:
                 item.likes = True
                 item.dislikes = False
             item.save()
@@ -216,9 +220,12 @@ class DislikeArticle(ListCreateAPIView):
 
         self.updateimpression(impression)
         try:
+            impression = Impressions.objects.all().filter(slug=slug, likes=True)
+            total_likes = impression.aggregate(Count('likes'))
             impression = Impressions.objects.all().filter(slug=slug, dislikes=True)
             total_dislikes = impression.aggregate(Count('dislikes'))
             article = Article.objects.get(slug=slug)
+            article.likes = total_likes['likes__count']
             article.dislikes = total_dislikes['dislikes__count']
             article.save()
         except Article.DoesNotExist:
@@ -235,7 +242,8 @@ class DislikeArticle(ListCreateAPIView):
             )[0]
             if item.dislikes == True:
                 item.dislikes = False
-            elif item.dislikes == False and item.likes == True:
+                item.likes = False
+            else:
                 item.dislikes = True
                 item.likes = False
             item.save()
@@ -245,4 +253,3 @@ class DislikeArticle(ListCreateAPIView):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-
