@@ -27,7 +27,8 @@ class BaseTest(APITestCase):
             "article": {
                 "title": "How to fight dragons 8",
                 "description": "Ever wonder jckvlahvhow?",
-                "body": "You have kenglto believe"
+                "body": "You have kenglto believe",
+                "tags": ["santa", "dorin"]
             }
         }
 

@@ -4,9 +4,7 @@ from .views import (
     ArticleViewSet, ArticleRetrieve,
     LikeArticle, DislikeArticle, RatingsView, ReportArticlesView, 
     TagListView, FacebookShareView, TwitterShareView, EmailShareView,
-    BookMarkView, BookMarkArticleView
-)
-
+    BookMarkView, BookMarkArticleView,SearchArticleView)
 
 urlpatterns = [
     path('articles/', ArticleViewSet.as_view()),
@@ -21,4 +19,5 @@ urlpatterns = [
     path('articles/<slug>/facebook/', FacebookShareView.as_view()),
     path('articles/<slug>/twitter/', TwitterShareView.as_view()),
     path('articles/<slug>/email/', EmailShareView.as_view()),
+    path('articles/search/', SearchArticleView.as_view()),
 ]

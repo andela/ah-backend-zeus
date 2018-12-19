@@ -1,8 +1,9 @@
 from rest_framework import mixins, status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.permissions import (
+    IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny)
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound,APIException
 from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView, RetrieveUpdateAPIView,
     ListCreateAPIView, ListAPIView)
@@ -11,25 +12,20 @@ from .models import (
 from .renderers import ArticleJSONRenderer
 from .serializers import (
     ArticleSerializer, ImpressionSerializer,
-    RatingSerializer, ArticleReportSerializer, TagSerializer)
+    RatingSerializer, ArticleReportSerializer, 
+    TagSerializer, BookMarkArticleSerializer)
 from .pagination import PageNumbering
 from django.db.models import Avg
 from authors.apps.articles.models import Article, BookMarkArticle
 from authors.apps.profiles.models import UserProfile
-from .renderers import ArticleJSONRenderer
-from .serializers import (
-    ArticleSerializer, ImpressionSerializer,
-    RatingSerializer, BookMarkArticleSerializer)
 from ..authentication.models import User
 from django.db.models import Count
 import os
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
-
 from rest_framework import generics
 from rest_framework import authentication
 from rest_framework.authentication import get_authorization_header
-from rest_framework.exceptions import NotFound, APIException
 import jwt
 from authors.settings import EMAIL_HOST_USER, SECRET_KEY
 from django.core.mail import send_mail
@@ -372,8 +368,7 @@ class BookMarkView(ListCreateAPIView):
             self.article.append(serializer.data)
         
         return Response(self.article)
-        
-
+ 
 
 class FacebookShareView(APIView):
     """
@@ -441,6 +436,7 @@ class TwitterShareView(APIView):
         
 class EmailShareView(APIView):
     """
+    sharing an article via
     """
     permission_classes = (IsAuthenticated,)
     
@@ -476,3 +472,48 @@ class EmailShareView(APIView):
             },
             status = status.HTTP_404_NOT_FOUND
             )
+class SearchArticleView(ListAPIView):
+    """
+    view that searches articles
+    """
+    permission_classes = (AllowAny, )
+    serializer_class = ArticleSerializer
+
+    def get(self, request):
+        search_params = request.query_params
+        query_set = Article.objects.all()
+
+        author = search_params.get('author', None)
+        title = search_params.get('title', None)
+        tag = search_params.get('tag', None)
+        keywords = search_params.get('keywords', None)
+
+        if author:
+            try:
+                user_id = User.objects.get(username=author).id
+
+            except User.DoesNotExist:
+                raise NotFound('Specified User does not exist.')
+            profile_id = UserProfile.objects.get(user_id=user_id).id
+            query_set = query_set.filter(author=profile_id)
+        if title:
+            query_set = query_set.filter(title__icontains=title)
+        if  tag:
+            query_set = Article.objects.none()
+            for article in Article.objects.all():
+                try:
+                    if article.tags.all().get(tag=tag):
+                        query_set |= Article.objects.filter(title=article.title)
+                except:
+                    pass
+        if keywords:
+            words = str(keywords).split(',')
+            last_queryset = ''
+            for word in words:
+                last_queryset = query_set.filter(title__icontains=word)
+            query_set = last_queryset
+
+        serializer = self.serializer_class(query_set, many=True)
+        res_data = serializer.data
+
+        return Response({"search results": res_data}, status.HTTP_200_OK)
