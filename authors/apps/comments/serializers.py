@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from authors.apps.articles.models import Article
-from authors.apps.comments.models import Comments, Replies
+from authors.apps.comments.models import Comments, Replies, Impressions
 from authors.apps.authentication.models import User
 from authors.apps.profiles.models import UserProfile
 from authors.apps.profiles.serializers import GetUserProfileSerializer
@@ -48,4 +48,32 @@ class CommentSerializer(serializers.ModelSerializer):
             'article',
             'author',
             'created_at',
-            'replies')
+            'replies',
+            'likes'
+            )
+
+class ImpressionSerializer(serializers.ModelSerializer):
+    """
+    Serializes impressions requests and adds to an Article.
+    """
+
+    createdAt = serializers.SerializerMethodField(method_name='get_created_at')
+    updatedAt = serializers.SerializerMethodField(method_name='get_updated_at')
+
+    class Meta:
+        model = Impressions
+        fields = (
+            'comment',
+            'user',
+            'likes',
+            'updatedAt',
+            'createdAt',
+        )
+
+    def get_created_at(self, instance):
+
+        return instance.created_at.isoformat()
+
+    def get_updated_at(self, instance):
+
+        return instance.updated_at.isoformat()

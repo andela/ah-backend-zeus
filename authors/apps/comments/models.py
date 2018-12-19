@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from authors.apps.articles.models import Article
 from authors.apps.authentication.models import User
-
+from authors.apps.core.models import TimestampedModel
 
 class Comments(models.Model):
     """
@@ -22,6 +22,10 @@ class Comments(models.Model):
 
     created_at = models.DateTimeField(
         auto_created=True, auto_now=False, default=timezone.now)
+    likes = models.IntegerField(
+        db_index=True,
+        default=False
+    )
 
     def __str__(self):
         """
@@ -68,3 +72,24 @@ class Replies(models.Model):
     class Meta:
 
         ordering = ['created_at']
+
+
+class Impressions(TimestampedModel):
+    """
+    Create an `Impression` with a slug, user details, likes and dislikes.
+    """
+
+    comment = models.ForeignKey(
+        Comments,
+        on_delete=models.CASCADE,
+        default=None
+    )
+    user = models.ForeignKey(
+        'profiles.UserProfile',
+        on_delete=models.CASCADE,
+        default=None
+    )
+    likes = models.BooleanField(
+        db_index=True,
+        default=None
+    )
