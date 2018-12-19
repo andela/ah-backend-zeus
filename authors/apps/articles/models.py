@@ -96,3 +96,6 @@ class Tag(TimestampedModel):
 
     def __str__(self):
         return self.tag
+class BookMarkArticle(TimestampedModel):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    article = models.CharField(max_length=50)

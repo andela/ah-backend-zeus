@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from authors.apps.profiles.serializers import GetUserProfileSerializer
+from .models import Article, Rating, BookMarkArticle
+from authors.apps.profiles.serializers import (
+    GetUserProfileSerializer)
 from .models import (
     Article, Rating, Impressions, Report, Tag
 )
@@ -75,6 +78,11 @@ class ImpressionSerializer(serializers.ModelSerializer):
     def get_updated_at(self, instance):
 
         return instance.updated_at.isoformat()
+
+class BookMarkArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookMarkArticle
+        fields = ['article', 'user', 'updated_at']
 
 
 class ArticleReportSerializer(serializers.ModelSerializer):
