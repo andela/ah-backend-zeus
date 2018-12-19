@@ -2,7 +2,10 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from .views import (
     ArticleViewSet, ArticleRetrieve,
-    LikeArticle, DislikeArticle, RatingsView, ReportArticlesView, TagListView,BookMarkView,BookMarkArticleView)
+    LikeArticle, DislikeArticle, RatingsView, ReportArticlesView, 
+    TagListView, FacebookShareView, TwitterShareView, EmailShareView,
+    BookMarkView, BookMarkArticleView
+)
 
 
 urlpatterns = [
@@ -14,6 +17,8 @@ urlpatterns = [
     path('<slug>/report_article', ReportArticlesView.as_view()),
     path('tags', TagListView.as_view()),
     path('articles/bookmark/<slug>', BookMarkArticleView.as_view()),
-    path('articles/bookmark/', BookMarkView.as_view())
-    
+    path('articles/bookmark/', BookMarkView.as_view()),
+    path('articles/<slug>/facebook/', FacebookShareView.as_view()),
+    path('articles/<slug>/twitter/', TwitterShareView.as_view()),
+    path('articles/<slug>/email/', EmailShareView.as_view()),
 ]

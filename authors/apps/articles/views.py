@@ -22,6 +22,9 @@ from .serializers import (
     RatingSerializer, BookMarkArticleSerializer)
 from ..authentication.models import User
 from django.db.models import Count
+import os
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 
 from rest_framework import generics
 from rest_framework import authentication
@@ -323,6 +326,8 @@ class TagListView(ListAPIView):
         return Response({
             'tags': serializer_data
         }, status=status.HTTP_200_OK)
+
+
 class BookMarkArticleView(ListCreateAPIView):
     """
     class for bookmarking and unbookmarking an article
@@ -350,6 +355,7 @@ class BookMarkArticleView(ListCreateAPIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 class BookMarkView(ListCreateAPIView):
     """
     class for getting bookmarked articles
@@ -367,3 +373,106 @@ class BookMarkView(ListCreateAPIView):
         
         return Response(self.article)
         
+
+
+class FacebookShareView(APIView):
+    """
+    sharing an article on facebook
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, slug, **kwargs):
+        slug = slug
+
+        try:
+            Article.objects.get(slug=slug)
+            current_site = 'http://{}'.format(get_current_site(request))
+            route = 'api/articles'
+            url = "{}/{}/{}".format(current_site, route, slug)
+            base_url = "https://www.facebook.com/sharer/sharer.php?u="
+            url_link = base_url + url
+
+            return Response(
+                {
+                    "message": "Authors Haven",
+                    "link": url_link
+                },
+                status=status.HTTP_200_OK
+            )
+        except:
+            return Response({
+                "message": "Article not found."
+            },
+            status=status.HTTP_404_NOT_FOUND
+            )
+
+        
+class TwitterShareView(APIView):
+    """
+    sharing an article on twitter
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, slug, **kwargs):
+        slug = slug
+
+        try:
+            Article.objects.get(slug=slug)
+            base_url = "https://twitter.com/home?status="
+            current_site = 'http://{}'.format(get_current_site(request))
+            route = 'api/articles'
+            url = "{}/{}/{}".format(current_site, route, slug)
+            url_link = base_url + url
+
+            return Response(
+                {
+                    "message": "Twitterlink",
+                    "link": url_link
+                },
+                status=status.HTTP_200_OK
+            )
+        except:
+            return Response({
+                "message":"Article not found"
+            },
+            status=status.HTTP_404_NOT_FOUND
+            )
+
+        
+class EmailShareView(APIView):
+    """
+    """
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request, slug):
+        
+        slug = slug
+        try:
+            
+            Article.objects.get(slug=slug)
+
+            current_site = 'http://{}'.format(get_current_site(request))
+            route = 'api/articles'
+            url = "{}/{}/{}".format(current_site, route, slug)
+
+            from_email = os.environ.get(
+                "EMAIL_HOST_USER", "seven.zeusgeek@gmail.com")
+            recipient = request.user.email
+            subject = "Authors Haven"
+            body = "Click here to enjoy the article {}/".format(url)
+            send_mail(subject, body, from_email, [recipient], fail_silently=False)
+
+            return Response(
+                {
+                    "message": "Email has been successfully sent",
+                    "link": url
+                },
+                status=status.HTTP_200_OK
+            )
+        except:
+            return Response({
+                "message":"Article not found"
+                
+            },
+            status = status.HTTP_404_NOT_FOUND
+            )
