@@ -447,7 +447,7 @@ class EmailShareView(APIView):
             
             Article.objects.get(slug=slug)
 
-            current_site = 'http://{}'.format(get_current_site(request))
+            current_site = 'https://{}'.format(get_current_site(request))
             route = 'api/articles'
             url = "{}/{}/{}".format(current_site, route, slug)
 
@@ -455,7 +455,7 @@ class EmailShareView(APIView):
                 "EMAIL_HOST_USER", "seven.zeusgeek@gmail.com")
             recipient = request.user.email
             subject = "Authors Haven"
-            body = "Click here to enjoy the article {}/".format(url)
+            body = "Click here to enjoy the article {}".format(url)
             send_mail(subject, body, from_email, [recipient], fail_silently=False)
 
             return Response(
