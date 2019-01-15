@@ -5,7 +5,7 @@ from .serializers import (
 )
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated,IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework import status
 from .models import UserProfile, Follow
@@ -25,10 +25,15 @@ class Updateprofile(RetrieveUpdateAPIView):
     queryset = UserProfile.objects.all()
     serializer_class = UpdateProfileSerializer
 
-    def update(self,request):
-        serializer =self.serializer_class(request.user.userprofile, data=request.data)
+    def update(self, request):
+        serializer = self.serializer_class(
+            request.user.userprofile, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.update(request.user.userprofile, request.data)
+        return Response(serializer.data)
+
+    def get(self, request):
+        serializer = self.serializer_class(request.user.userprofile)
         return Response(serializer.data)
 
 
@@ -37,23 +42,23 @@ class FavoriteArticle(RetrieveUpdateAPIView):
     serializer_class = FavoriteArticleSerializer
     queryset = Article.objects.all()
 
-    def update(self,request,slug):
+    def update(self, request, slug):
         try:
             serializer_instance = self.queryset.get(slug=slug)
         except Article.DoesNotExist:
-            return Response('An article with this slug does not exist.',status.HTTP_404_NOT_FOUND)
-        
+            return Response('An article with this slug does not exist.', status.HTTP_404_NOT_FOUND)
+
         userprofile_obj = request.user.userprofile
-        
+
         if slug in userprofile_obj.favorite_article:
             userprofile_obj.favorite_article.remove(slug)
-            userprofile_obj.save() 
+            userprofile_obj.save()
             return Response("unfavorited!")
-    
+
         userprofile_obj.favorite_article.append(slug)
-        userprofile_obj.save(update_fields = ['favorite_article'])
+        userprofile_obj.save(update_fields=['favorite_article'])
         return Response("favorited!")
-        
+
 
 class FollowsView(APIView):
     permission_classes = (IsAuthenticated,)
@@ -63,7 +68,8 @@ class FollowsView(APIView):
         try:
             followed_id = User.objects.get(username=username).id
             self.profile_id = UserProfile.objects.get(user_id=followed_id).id
-            self.verify_following_criteria_met(follower_id, followed_id, username)
+            self.verify_following_criteria_met(
+                follower_id, followed_id, username)
         except Exception as e:
             if isinstance(e, User.DoesNotExist):
                 raise NotFound('No user with name {} exists.'.format(username))
@@ -74,29 +80,32 @@ class FollowsView(APIView):
         serializer.save()
         profile = self.get_followed_profile(self.profile_id)
         return Response(profile, status=status.HTTP_201_CREATED)
-    
+
     def verify_following_criteria_met(self, follower_id, followed_id, name):
         if follower_id == followed_id:
             raise Exception('You cannot follow your own profile.')
-        query_result = Follow.objects.filter(follower_id=follower_id, followed_id=self.profile_id)
+        query_result = Follow.objects.filter(
+            follower_id=follower_id, followed_id=self.profile_id)
         if len(query_result) != 0:
             raise Exception('Already following {}.'.format(name))
-    
+
     def get_followed_profile(self, followed):
         profile = UserProfile.objects.get(id=followed)
         serializer = GetUserProfileSerializer(profile)
         profile = serializer.data
         profile['following'] = True
         return profile
-    
+
     def delete(self, request, username):
         user_id = User.objects.get(username=request.user.username).id
         try:
             followed_id = User.objects.get(username=username).id
             profile_id = UserProfile.objects.get(user_id=followed_id).id
-            follow = Follow.objects.filter(follower_id=user_id, followed_id=profile_id)
+            follow = Follow.objects.filter(
+                follower_id=user_id, followed_id=profile_id)
             if len(follow) == 0:
-                raise Exception('Cannot unfollow a user you are not following.')
+                raise Exception(
+                    'Cannot unfollow a user you are not following.')
             follow.delete()
             return Response(
                 {'message': 'Successfully unfollowed {}.'.format(username)},
@@ -111,7 +120,7 @@ class FollowsView(APIView):
             return Response(
                 {'error': str(e)}, status=status.HTTP_400_BAD_REQUEST
             )
-    
+
     def get(self, request, username):
         try:
             user_id = User.objects.get(username=username).id
@@ -143,4 +152,3 @@ class FollowersView(APIView):
             username = User.objects.get(id=follow['follower']).username
             followers.append(username)
         return Response({'followers': followers}, status=status.HTTP_200_OK)
-        
