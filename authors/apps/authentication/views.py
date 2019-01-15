@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView
-from rest_framework.permissions import (AllowAny,IsAuthenticated,IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .validations import validate_registration
@@ -21,6 +22,8 @@ from .serializers import (
     LoginSerializer, RegistrationSerializer, UserSerializer, PasswordSerializer
 )
 from .models import User
+from ..profiles.serializers import GetUserProfileSerializer
+from ..profiles.models import UserProfile
 from authors.apps.articles.models import Article
 from django.http import JsonResponse
 
@@ -202,6 +205,8 @@ class UsersRetrieveAPIView(APIView):
         serializer = self.serializer_class(users, many=True)
         response = {'authors': serializer.data}
         for author, obj in zip(response['authors'], User.objects.all()):
-            author['profile'] = reverse('profile', request=request)
+            userprofile = UserProfile.objects.get(user=obj.id)
+            userprofile_serializer = GetUserProfileSerializer(userprofile)
+            author['profile'] = userprofile_serializer.data
             del author['token']
         return JsonResponse(response, status=200, safe=False)
