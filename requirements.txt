@@ -48,7 +48,7 @@ pytz==2018.7
 PyYAML==3.13
 requests==2.20.1
 requests-oauthlib==1.0.0
-rsa==4.0
+rsa==4.1
 ruamel.yaml==0.15.80
 simplejson==3.16.0
 six==1.11.0
