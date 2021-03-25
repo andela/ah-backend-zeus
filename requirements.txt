@@ -45,7 +45,7 @@ PyJWT==1.4.2
 pylint==2.2.1
 python-twitter==3.5
 pytz==2018.7
-PyYAML==3.13
+PyYAML==5.4
 requests==2.20.1
 requests-oauthlib==1.0.0
 rsa==4.0
